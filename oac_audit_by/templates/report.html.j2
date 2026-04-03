@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчет ОАЦ №66 - {{ hostname }}</title>
+    <style>
+        body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; margin: 20px; color: #333; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .info-block { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #dee2e6; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #2c3e50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .status-pass { color: #27ae60; font-weight: bold; }
+        .status-fail { color: #c0392b; font-weight: bold; }
+        .status-error { color: #e67e22; font-weight: bold; }
+        .status-manual { color: #7f8c8d; font-style: italic; }
+        .footer { margin-top: 40px; font-size: 0.9em; color: #7f8c8d; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Отчет о соответствии требованиям Приказа ОАЦ №66</h1>
+    
+    <div class="info-block">
+        <strong>Дата проверки:</strong> {{ timestamp }}<br>
+        <strong>Имя хоста:</strong> {{ hostname }}<br>
+        <strong>Выбранные классы ИС:</strong> {{ selected_classes | join(', ') }}<br>
+        <strong>Пользователь:</strong> {{ username }}
+    </div>
+
+    <h2>1. Проверка настроек безопасности ОС</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Пункт требования</th>
+                <th>Описание</th>
+                <th>Требуемое значение</th>
+                <th>Фактическое значение</th>
+                <th>Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for check in os_checks %}
+            <tr>
+                <td>{{ check.id }}</td>
+                <td>{{ check.description }}</td>
+                <td>{{ check.expected }}</td>
+                <td>{{ check.actual }}</td>
+                <td class="status-{{ check.status_class }}">{{ check.status_text }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>2. Проверка наличия сертифицированных СЗИ</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Наименование ПО</th>
+                <th>Описание</th>
+                <th>Проверенные пути/службы</th>
+                <th>Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for szi in szi_checks %}
+            <tr>
+                <td>{{ szi.name }}</td>
+                <td>{{ szi.description }}</td>
+                <td>{{ szi.details }}</td>
+                <td class="status-{{ szi.status_class }}">{{ szi.status_text }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Сгенерировано автоматически системой OAC-Audit-BY (MVP).<br>
+        Версия скрипта: 0.1.0
+    </div>
+
+</body>
+</html>

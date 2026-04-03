@@ -1,0 +1,67 @@
+# Конфигурация правил проверки согласно Приказу ОАЦ №66
+# Формат: rule_id, описание, обязательные классы, команды (основная и резервная), эталон
+
+rules:
+  # П. 3.5 - Контроль правил генерации и смены паролей (Минимальная длина >= 8)
+  - id: "OAC-3.5"
+    description: "Минимальная длина пароля должна быть не менее 8 символов"
+    mandatory_classes: ["4-ин", "4-спец", "4-бг", "4-юл", "4-дсп", "3-ин", "3-спец", "3-бг", "3-юл", "3-дсп"]
+    check_type: "numeric_compare"
+    operator: ">="
+    expected_value: 8
+    commands:
+      primary:
+        shell: "powershell"
+        args: ["-Command", "(Get-LocalUser | Where-Object {$_.PasswordRequired -eq $true} | Measure-Object).Count -ge 0; (net accounts | findstr /C:'Minimum password length')"]
+        # Упрощенная команда для MVP: парсим вывод net accounts
+      fallback:
+        shell: "cmd"
+        args: ["/c", "net accounts"]
+    parse_pattern: "Minimum password length.*:\\s*(\\d+)"
+
+  # П. 1.1 - Регистрация событий безопасности (Аудит входа в систему)
+  - id: "OAC-1.1"
+    description: "Должен быть включен аудит событий входа в систему (Logon)"
+    mandatory_classes: ["4-ин", "4-спец", "4-бг", "4-юл", "4-дсп", "3-ин", "3-спец", "3-бг", "3-юл", "3-дсп"]
+    check_type: "string_contains"
+    expected_value: "Success"
+    commands:
+      primary:
+        shell: "powershell"
+        args: ["-Command", "auditpol /get /subcategory:'Logon'"]
+      fallback:
+        shell: "cmd"
+        args: ["/c", "auditpol /get /subcategory:'Logon'"]
+    parse_pattern: "Success\\s+(Audit|Enabled)|Disabled"
+    # Если найдено "Success Audit" или "Enabled" - PASS, если "Disabled" - FAIL
+
+  # П. 3.7 - Блокировка при бездействии (Screen Saver Timeout <= 15 мин / 900 сек)
+  - id: "OAC-3.7"
+    description: "Блокировка экрана после бездействия (не более 15 минут)"
+    mandatory_classes: ["4-ин", "4-спец", "4-бг", "4-юл", "4-дсп", "3-ин", "3-спец", "3-бг", "3-юл", "3-дсп"]
+    check_type: "numeric_compare"
+    operator: "<="
+    expected_value: 900 # в секундах
+    commands:
+      primary:
+        shell: "powershell"
+        args: ["-Command", "Get-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name ScreenSaveTimeOut -ErrorAction SilentlyContinue | Select-Object -ExpandProperty ScreenSaveTimeOut"]
+      fallback:
+        shell: "reg"
+        args: ["query", "HKCU\\Control Panel\\Desktop", "/v", "ScreenSaveTimeOut"]
+    parse_pattern: "REG_SZ\\s+(\\d+)|(\\d+)"
+
+  # П. 4.1 - Отключение учетной записи Guest
+  - id: "OAC-4.1"
+    description: "Учетная запись 'Guest' должна быть отключена"
+    mandatory_classes: ["4-ин", "4-спец", "4-бг", "4-юл", "4-дсп", "3-ин", "3-спец", "3-бг", "3-юл", "3-дсп"]
+    check_type: "boolean_false"
+    expected_value: false
+    commands:
+      primary:
+        shell: "powershell"
+        args: ["-Command", "(Get-LocalUser -Name 'Guest').Enabled"]
+      fallback:
+        shell: "cmd"
+        args: ["/c", "net user guest"]
+    parse_pattern: "Account active\\s+No|False"

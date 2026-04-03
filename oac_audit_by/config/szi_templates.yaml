@@ -1,0 +1,32 @@
+# Шаблоны проверки наличия сертифицированных средств защиты информации (СЗИ)
+# Пользователь должен вручную добавить пути к установленному ПО
+
+szi_checks:
+  - name: "Авест Континент"
+    description: "СКЗИ Авест Континент"
+    paths:
+      - "C:\\Program Files\\Avest\\avest.exe"
+      - "C:\\Program Files (x86)\\Avest\\avest.exe"
+    service_name: "AvestService"
+    mandatory_classes: ["3-дсп", "3-бг", "4-дсп"] # Пример, настроить под требования
+
+  - name: "Kaspersky Security Center"
+    description: "Антивирусная защита Касперский"
+    paths:
+      - "C:\\Program Files\\Kaspersky Lab\\Kaspersky Security Center\\klserver.exe"
+      - "C:\\Program Files (x86)\\Kaspersky Lab\\Kaspersky Security Center\\klserver.exe"
+    service_name: "klnagent"
+    mandatory_classes: ["4-ин", "4-спец", "3-ин", "3-спец"] # Пример
+
+  - name: "Secret Net Studio"
+    description: "Средство защиты от НСД Secret Net"
+    paths:
+      - "C:\\Program Files\\Secret Net\\snmain.exe"
+      - "C:\\Program Files (x86)\\Secret Net\\snmain.exe"
+    service_name: "SecretNet"
+    mandatory_classes: ["4-бг", "3-бг"] # Пример
+
+# Примечание: 
+# 1. Добавьте другие сертифицированные продукты по аналогии.
+# 2. Убедитесь, что пути соответствуют реальной установке в вашей инфраструктуре.
+# 3. Проверка считается успешной, если найден хотя бы один файл из списка или запущена служба.
